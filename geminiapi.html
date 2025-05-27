@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeminiApi</title>
+    <script>
+        async function SendData()
+        {
+            var list;
+            const dbresponse=await fetch('http://localhost:3000')
+            .then(response=>response.json())
+            .then(data=>
+            {
+                let table=document.getElementById("table");
+                table.innerHTML="";
+                table.border='1';
+                let row=table.insertRow();
+                let pidcell=row.insertCell();
+                let pnamecell=row.insertCell();
+                let pricecell=row.insertCell();
+                let quantitycell=row.insertCell();
+                pidcell.innerHTML="PId";
+                pnamecell.innerHTML="PName";
+                pricecell.innerHTML="Price";
+                quantitycell.innerHTML="Quantity";
+                for(var product of data)
+                {
+                    row=table.insertRow();
+                    pidcell=row.insertCell();
+                    pnamecell=row.insertCell();
+                    pricecell=row.insertCell();
+                    quantitycell=row.insertCell();
+                    pidcell.innerHTML=product.PId;
+                    pnamecell.innerHTML=product.PName;
+                    pricecell.innerHTML=product.Price;
+                    quantitycell.innerHTML=product.Quantity;
+                }
+                list=data;
+            })
+            .catch(error=>console.log(error));
+            var prompt1 = document.getElementById("prompt").value;
+            var question = document.getElementById("question").value;
+            var fileInput = document.getElementById("file");
+            var file = fileInput.files[0]; 
+            let prompt = prompt1 + " " + question;
+            if (file) {
+                var filereader = new FileReader();
+                filereader.onload = function() {
+                    const fileContent = filereader.result;
+                    const filetype = file.type;
+                    sendPrompt(prompt, fileContent, filetype);
+                };
+                filereader.readAsDataURL(file);
+            } else {
+                sendPrompt(prompt);
+            }
+            function sendPrompt(prompt, fileContent = null, filetype = null) 
+            {
+                var response = document.getElementById("response");
+                fetch('http://localhost:3000', {
+                    method: 'POST',
+                    body: JSON.stringify({ prompt, fileContent, filetype }),
+                    headers: { "Content-type": "application/json" }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    response.value = data.text || "No response text available";
+                    var result = JSON.parse(response.value);
+                    if (result.tool === "AddToCart") {
+                        AddToCart(result.items);
+                    }
+                })
+                .catch(error => console.log(error));
+            }
+        }
+        async function AddToCart(items)
+        {
+            try
+            {
+                const res = await fetch('http://localhost:3000/AddToCart', 
+                {
+                    method: 'POST',
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({items})
+                });
+                const data=await res.json();
+                console.log(data);
+            } 
+            catch(error) 
+            {
+                console.log("Error adding to cart:", error);
+            }
+        }
+        function GetCart()
+        {
+            fetch('http://localhost:3000/GetCart')
+            .then(response=>response.json())
+            .then(data=>
+            {
+                let table1=document.getElementById("table1");
+                table1.innerHTML="";
+                table1.border='1';
+                let row=table1.insertRow();
+                let pidcell=row.insertCell();
+                let pnamecell=row.insertCell();
+                let pricecell=row.insertCell();
+                let quantitycell=row.insertCell();
+                pidcell.innerHTML="PId";
+                pnamecell.innerHTML="PName";
+                pricecell.innerHTML="Price";
+                quantitycell.innerHTML="Quantity";
+                for(var cart of data)
+                {
+                    row=table1.insertRow();
+                    pidcell=row.insertCell();
+                    pnamecell=row.insertCell();
+                    pricecell=row.insertCell();
+                    quantitycell=row.insertCell();
+                    pidcell.innerHTML=cart.PId;
+                    pnamecell.innerHTML=cart.PName;
+                    pricecell.innerHTML=cart.Price;
+                    quantitycell.innerHTML=cart.Quantity;
+                }
+            })
+            .catch(error=>console.log(error));
+        }
+    </script>
+</head>
+<body>
+    <label for="prompt">Prompt:</label><br>
+    <textarea id="prompt" rows="10" cols="100"></textarea><br>
+     <label for="question">Question:</label><br>
+    <textarea id="question" rows="5" cols="100"></textarea><br>
+    <label for="file">File:</label><br>
+    <input type="file" id="file" name="file"><br>
+    <input type="button" name="btn" value="SendData" onclick="SendData()"><br>
+    <label for="response">Response :</label><br>
+    <textarea id="response" rows="10" cols="100"></textarea><br>
+    <input type="button" name="btn2" value="GetCart" onclick="GetCart()"><br>
+    <table id="table"></table>
+    <label for="cart">Cart:</label><br>
+    <table id="table1"></table>
+</body>
+</html>
