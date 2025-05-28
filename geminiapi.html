@@ -43,7 +43,7 @@
             var question = document.getElementById("question").value;
             var fileInput = document.getElementById("file");
             var file = fileInput.files[0]; 
-            let prompt = prompt1 + " " + question;
+            let prompt = JSON.stringify(list)+" "+prompt1+ " " + question;
             if (file) {
                 var filereader = new FileReader();
                 filereader.onload = function() {
